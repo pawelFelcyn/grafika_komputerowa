@@ -26,22 +26,32 @@ void renderScene(GLFWwindow* window)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// ! Macierz translation jest definiowana wierszowo dla poprawy czytelnosci. OpenGL i GLM domyslnie stosuje macierze kolumnowe, dlatego musimy ja transponowac !
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
 	glm::mat4 rotation =
-	{ 1,0,0,0,
-	  0,1,0,0,
+	{ cos(time),- sin(time),0,0,
+	  sin(time),cos(time),0,0,
 	  0,0,1,0,
 	  0,0,0,1 };
+	rotation = glm::transpose(rotation);
+	glm::mat4 translation =
+	{ 1,0,0,0,
+	  0,1,0,sin(time) * 0.5f,
+	  0,0,1,0,
+	  0,0,0,1 };
+	translation = glm::transpose(translation);
 
 	// ZADANIE: Narysuj dwa czworokaty, jeden ruszajacy sie, drugi obracajacy sie 
 	// Do rysowania ruszajacego sie czworokatu mozesz uzyc kodu z poprzedniego zadania, zmodyfikuj tylko macierz translacji, zeby byly obok siebie, nie jeden na drugim
 	// Uzyj zmiennej "time" do zdefiniowania takiej macierzy rotacji, aby czworokat obracal sie wokol srodka (znajdz odpowiednia macierz 4x4 w internecie)
 	// Kat obrotu podajemy w radianach
 
+	glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&translation);
 
-    rotation = glm::transpose(rotation);
+	Core::drawVAOIndexed(quadVAO, 16);
+
 	glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&rotation);
 
-	// Uzyj kodu z poprzednich cwiczen do narysowania czworokata
+	Core::drawVAOIndexed(quadVAO, 16);
 
 	glUseProgram(0);
 
@@ -57,7 +67,12 @@ void init(GLFWwindow* window) {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	program = shaderLoader.CreateProgram("shaders/shader_1_2.vert", "shaders/shader_1_2.frag");
 
-    //Przekopiuj kod do ladowania z poprzedniego zadania
+	float points[16] = { -0.75f, 0.25f, 0.0f, 1.0f,
+	   -0.75f, -0.25f, 0.0f, 1.0f,
+	   -0.25f, 0.25f, 0.0f, 1.0f,
+	   -0.25f, -0.25f, 0.0f, 1.0f };
+	unsigned int indexes[6] = { 0, 1, 2, 1, 2, 3 };
+	quadVAO = Core::initVAOIndexed(points, indexes, 4, 4, 6);
 }
 
 void shutdown(GLFWwindow* window)

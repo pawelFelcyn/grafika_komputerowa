@@ -24,14 +24,30 @@ void renderScene(GLFWwindow* window)
     glUseProgram(program);
     
     // ZADANIE: Wyswietl czworokat, ktory jednoczesnie przesuwa sie i obraca.
-    // 
-    // Uzyj kodu do translacji i rotacji czworokatu z poprzednich zadan
-    // 
-    // Stworz taka macierz transformacji, ktora powoduje ze czworokat przesuwa sie w gore i w dol ekranu, jednoczesnie obracajac sie.
-    // Wyslij stworzona macierz do GPU za pomoca funkcji glUniformMatrix4fv zamiast macierzy "translation" i "rotation" z poprzednich zadan
+    glm::mat4 goToMiddle =
+    { 1,0,0,0.5f,
+      0,1,0,0,
+      0,0,1,0,
+      0,0,0,1 };
+    glm::mat4 rotation =
+    { cos(time),-sin(time),0,0,
+      sin(time),cos(time),0,0,
+      0,0,1,0,
+      0,0,0,1 };
+    glm::mat4 goBack =
+    { 1,0,0,-0.5f,
+      0,1,0,0,
+      0,0,1,0,
+      0,0,0,1 };
+    glm::mat4 translation =
+    { 1,0,0,0,
+      0,1,0,sin(time) * 0.5f,
+      0,0,1,0,
+      0,0,0,1 };
+    glm::mat4 ultimateMatrix = transpose(goToMiddle * rotation * goBack * translation);
+    glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&ultimateMatrix);
 
-
-    // Uzyj kodu z poprzednich cwiczen do narysowania czworokata
+    Core::drawVAOIndexed(quadVAO, 16);
 
     glUseProgram(0);
 
@@ -47,7 +63,12 @@ void init(GLFWwindow* window) {
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     program = shaderLoader.CreateProgram("shaders/shader_1_2.vert", "shaders/shader_1_2.frag");
 
-    //Przekopiuj kod do ladowania z poprzedniego zadania
+    float points[16] = { -0.75f, 0.25f, 0.0f, 1.0f,
+        -0.75f, -0.25f, 0.0f, 1.0f,
+        -0.25f, 0.25f, 0.0f, 1.0f,
+        -0.25f, -0.25f, 0.0f, 1.0f };
+    unsigned int indexes[6] = { 0, 1, 2, 1, 2, 3 };
+    quadVAO = Core::initVAOIndexed(points, indexes, 4, 4, 6);
 }
 
 void shutdown(GLFWwindow* window)
