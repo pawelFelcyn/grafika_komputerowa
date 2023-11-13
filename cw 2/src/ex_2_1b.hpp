@@ -28,6 +28,8 @@ float hues[] = {
 	0.5714285714285714f, 
 	0.2857142857142857f
 };
+unsigned int indexes[8] = { 0, 3, 6, 2, 5, 1, 4, 0 };
+
 
 
 
@@ -35,20 +37,25 @@ GLuint program;
 Core::Shader_Loader shaderLoader;
 
 unsigned int VAO;
+GLuint VBO;
+GLuint EBO;
+GLuint COLORS;
 
 void renderScene(GLFWwindow* window)
 {
 	glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+	
 	// ZADANIE: Powyżej w tablicy points znajdują się wierzchołki 7-kąta foremnego, zadanie polega na narysowaniu gwiazdy siedmioramiennej jak na obrazku zad1b.jpg. Do shadera należy przesłać pozycje wierzchołków i ich odcienie z tablicy hues podobnie jak w zadaniu 1a. 
 	// Idealnie rozwiązane zadanie wymaga użycia indeksowania z użyciem Element Buffer Objects oraz trybu rysowania GL_LINE_STRIP
 	// (dodatkowe) Jedna krawędź przechodzi przez wszystkie odcienie zamiast z czerwonego do magenty. Co to powoduje? W jaki sposób byś to naprawił?
 
 	glUseProgram(program);
 
-
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glDrawElements(GL_LINE_STRIP, 8, GL_UNSIGNED_INT, 0);
 
 
 	glUseProgram(0);
@@ -66,6 +73,23 @@ void init(GLFWwindow* window)
 	glEnable(GL_DEPTH_TEST);
 	program = shaderLoader.CreateProgram("shaders/shader_2_1b.vert", "shaders/shader_2_1b.frag");
 
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
+
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(points), &points, GL_STATIC_DRAW);
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(float) , 0);
+
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), &indexes, GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
 }
 
 void shutdown(GLFWwindow* window)
