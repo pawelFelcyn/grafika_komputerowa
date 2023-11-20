@@ -84,8 +84,20 @@ glm::mat4 createPerspectiveMatrix()
 	return perspectiveMatrix;
 }
 
+void drawObjectTexture(Core::RenderContext& context, glm::mat4 modelMatrix, GLuint textureID) {
+	glUseProgram(programTex);
+	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
+	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
+	glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&transformation);
+	glUniformMatrix4fv(glGetUniformLocation(program, "modelMatrix"), 1, GL_FALSE, (float*)&modelMatrix);
+	glUniform3f(glGetUniformLocation(program, "lightPos"), 0, 0, 0);
+	Core::SetActiveTexture(textureID, "colorTexture", programTex, 0);
+	Core::DrawContext(context);
+	//outColor = vec4(color * min(1, AMBIENT + diffuse), 1.0);
+}
+
 void drawObjectColor(Core::RenderContext& context, glm::mat4 modelMatrix, glm::vec3 color) {
-	
+	glUseProgram(program);
 	glm::mat4 viewProjectionMatrix = createPerspectiveMatrix() * createCameraMatrix();
 	glm::mat4 transformation = viewProjectionMatrix * modelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(program, "transformation"), 1, GL_FALSE, (float*)&transformation);
@@ -127,9 +139,9 @@ void renderScene(GLFWwindow* window)
 	//	glm::translate(cameraPos + 1.5 * cameraDir + cameraUp * -0.5f) * inveseCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()),
 	//	glm::vec3(0.3, 0.3, 0.5)
 	//	);
-	drawObjectColor(shipContext,
+	drawObjectTexture(shipContext,
 		glm::translate(spaceshipPos) * specshipCameraRotrationMatrix * glm::eulerAngleY(glm::pi<float>()),
-		glm::vec3(0.3, 0.3, 0.5)
+		texture::ship
 	);
 
 	glUseProgram(0);
@@ -162,12 +174,22 @@ void init(GLFWwindow* window)
 
 	loadModelToContext("./models/sphere.obj", sphereContext);
 	loadModelToContext("./models/spaceship.obj", shipContext);
+	texture::earth = Core::LoadTexture("./textures/earth.png");
+	texture::clouds = Core::LoadTexture("./textures/clouds.jpg");
+	texture::moon = Core::LoadTexture("./textures/moon.png");
+	texture::ship = Core::LoadTexture("./textures/spaceship.jpg");
+	texture::grid = Core::LoadTexture("./textures/grid.png");
+	texture::earthNormal = Core::LoadTexture("./textures/earth_normalmap.png");
+	texture::shipNormal = Core::LoadTexture("./textures/spaceship_normal.jpg");
+	texture::asteroidNormal = Core::LoadTexture("./textures/asteroid_normalmap.jpg");
 
+	programTex = shaderLoader.CreateProgram("shaders/shader_5_1_tex.vert", "shaders/shader_5_1_tex.frag");
 }
 
 void shutdown(GLFWwindow* window)
 {
 	shaderLoader.DeleteProgram(program);
+	shaderLoader.DeleteProgram(programTex);
 }
 
 //obsluga wejscia
