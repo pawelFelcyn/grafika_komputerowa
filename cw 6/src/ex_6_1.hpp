@@ -117,13 +117,13 @@ void renderScene(GLFWwindow* window)
 
 	glUseProgram(program);
 
-	drawObjectColor(sphereContext, glm::mat4(), glm::vec3(1.0, 1.0, 0.3));
+	drawObjectTexture(sphereContext, glm::mat4(), texture::grid);
 
-	drawObjectColor(sphereContext, glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), glm::vec3(0.2, 0.7, 0.3));
-
-	drawObjectColor(sphereContext,
+	drawObjectTexture(sphereContext, glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::scale(glm::vec3(0.3f)), texture::earth);
+	//glUseProgram(program);
+	drawObjectTexture(sphereContext,
 		glm::eulerAngleY(time / 3) * glm::translate(glm::vec3(4.f, 0, 0)) * glm::eulerAngleY(time) * glm::translate(glm::vec3(1.f, 0, 0)) * glm::scale(glm::vec3(0.1f)),
-		glm::vec3(0.5, 0.5, 0.5));
+		texture::clouds);
 
 	glm::vec3 spaceshipSide = glm::normalize(glm::cross(spaceshipDir, glm::vec3(0.f, 1.f, 0.f)));
 	glm::vec3 spaceshipUp = glm::normalize(glm::cross(spaceshipSide, spaceshipDir));
@@ -177,7 +177,7 @@ void init(GLFWwindow* window)
 	texture::earth = Core::LoadTexture("./textures/earth.png");
 	texture::clouds = Core::LoadTexture("./textures/clouds.jpg");
 	texture::moon = Core::LoadTexture("./textures/moon.png");
-	texture::ship = Core::LoadTexture("./textures/spaceship.jpg");
+	texture::ship = Core::LoadTexture("./textures/rust.jpg");
 	texture::grid = Core::LoadTexture("./textures/grid.png");
 	texture::earthNormal = Core::LoadTexture("./textures/earth_normalmap.png");
 	texture::shipNormal = Core::LoadTexture("./textures/spaceship_normal.jpg");
