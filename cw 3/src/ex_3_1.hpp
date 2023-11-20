@@ -26,6 +26,7 @@ Core::RenderContext sphereContext;
 glm::vec3 cameraPos = glm::vec3(-1.f, 0, 0);
 glm::vec3 cameraDir = glm::vec3(1.f, 0.f, 0.f);
 GLuint VAO,VBO;
+glm::vec3 cameraSide, cameraUp;
 
 float aspectRatio = 1.f;
 
@@ -36,9 +37,9 @@ glm::mat4 createCameraMatrix(){
 	// ! Macierz translation jest definiowana wierszowo dla poprawy czytelnosci. OpenGL i GLM domyslnie stosuje macierze kolumnowe, dlatego musimy ja transponowac !
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	glm::mat4 cameraRotationMatrix = glm::mat4({
-		1.,0.,0.,0.,
-		0.,1.,0.,0.,
-		0.,0.,1.,0.,
+		cameraSide.x,cameraSide.y,cameraSide.z,0.,
+		cameraUp.x,cameraUp.y,cameraUp.z,0.,
+		-cameraDir.x,-cameraDir.y,-cameraDir.z,0.,
 		0.,0.,0.,1.,
 		});
 	cameraRotationMatrix = glm::transpose(cameraRotationMatrix);
@@ -54,11 +55,17 @@ glm::mat4 createPerspectiveMatrix(){
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// ! Macierz translation jest definiowana wierszowo dla poprawy czytelnosci. OpenGL i GLM domyslnie stosuje macierze kolumnowe, dlatego musimy ja transponowac !
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	float n = 0.1f;
+	float f = 0.4f;
+	float fov = 120.;
+	float S = 1 / (tan((fov / 2) * (3.14 / 180)));
+
+
 	glm::mat4 perspectiveMatrix = glm::mat4({
-		1.,0.,0.,0.,
-		0.,1.,0.,0.,
-		0.,0.,1.,0.,
-		0.,0.,0.,1.,
+		S,0.,0.,0.,
+		0.,S * aspectRatio,0.,0.,
+		0.,0.,(n + f)/(n - f),(2*n*f)/(n - f),
+		0.,0.,-1.,0.,
 		});
 
 	
@@ -72,12 +79,11 @@ void renderScene(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glm::mat4 transformation;
-
 	glUseProgram(program_box);
 
 
 	glBindVertexArray(VAO);
-	transformation = createPerspectiveMatrix();
+	transformation = createCameraMatrix() * createPerspectiveMatrix() * transformation;
 	glUniformMatrix4fv(glGetUniformLocation(program_box, "transformation"), 1, GL_FALSE, (float*)&transformation);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
@@ -137,7 +143,7 @@ void shutdown(GLFWwindow* window)
 //obsluga wejscia
 void processInput(GLFWwindow* window)
 {
-	glm::vec3 cameraSide = glm::normalize(glm::cross(cameraDir, glm::vec3(0.f,1.f,0.f)));
+	cameraSide = glm::normalize(glm::cross(cameraDir, glm::vec3(0.f,1.f,0.f)));
 	float angleSpeed = 0.05f;
 	float moveSpeed = 0.05f;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -155,6 +161,7 @@ void processInput(GLFWwindow* window)
 		cameraDir = glm::vec3(glm::eulerAngleY(angleSpeed) * glm::vec4(cameraDir, 0));
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraDir = glm::vec3(glm::eulerAngleY(-angleSpeed) * glm::vec4(cameraDir, 0));
+	cameraUp = glm::normalize(glm::cross(cameraDir, cameraSide));
 
 }
 
